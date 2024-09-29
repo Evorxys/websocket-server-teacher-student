@@ -8,7 +8,7 @@ const server = http.createServer(app);
 
 // Update CORS options to allow requests from both teacher and student apps
 const corsOptions = {
-  origin: ['https://evorxys.github.io', 'https://your-teacher-app-url.com'], // Add both the student and teacher apps URLs
+  origin: ['https://evorxys.github.io', 'https://github.com/Evorxys/teacher-web-app'], // Add both the student and teacher apps URLs
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
   credentials: true
