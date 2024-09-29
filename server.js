@@ -6,35 +6,33 @@ const { Server } = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 
+// Update CORS options to allow requests from GitHub Pages
+const corsOptions = {
+  origin: 'https://evorxys.github.io', // Allow only the specific origin of your web app
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'], // Add more headers if needed
+  credentials: true
+};
+
+// Apply CORS middleware to Express with specific options
+app.use(cors(corsOptions));
+
 // Set up Socket.IO with CORS
 const io = new Server(server, {
-  cors: {
-    origin: '*',  // Allow all origins
-    methods: ['GET', 'POST']  // Allowed HTTP methods
-  }
+  cors: corsOptions  // Same CORS options for Socket.IO
 });
-
-// Apply CORS middleware to Express
-app.use(cors());
 
 // Socket.IO connection event
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);  // Log when a user connects
+  console.log('A user connected:', socket.id);
 
-  // Listen for 'sendMessage' event from clients
   socket.on('sendMessage', (data) => {
     console.log('Received message:', data);
-
-    // Broadcast the message to all other clients, excluding the sender
-    socket.broadcast.emit('receiveMessage', data);  // Excludes the sender
-
-    // If you want to send the message to everyone, including the sender:
-    // io.emit('receiveMessage', data);
+    socket.broadcast.emit('receiveMessage', data);  // Broadcast to all others
   });
 
-  // Handle client disconnection
   socket.on('disconnect', () => {
-    console.log('A user disconnected:', socket.id);  // Log when a user disconnects
+    console.log('A user disconnected:', socket.id);
   });
 });
 
