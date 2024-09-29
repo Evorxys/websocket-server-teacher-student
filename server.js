@@ -1,51 +1,45 @@
 const express = require('express');
 const http = require('http');
+const socketIo = require('socket.io');
 const cors = require('cors');
-const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-
-// Update CORS options to allow requests from both teacher and student apps
-const corsOptions = {
-  origin: ['https://evorxys.github.io', 'https://github.com/Evorxys/teacher-web-app'], // Add both the student and teacher apps URLs
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
-  credentials: true
-};
-
-// Apply CORS middleware to Express
-app.use(cors(corsOptions));
-
-// Set up Socket.IO with CORS
-const io = new Server(server, {
-  cors: corsOptions
+const io = socketIo(server, {
+    cors: {
+        origin: '*',  // Allow all origins (change in production)
+        methods: ['GET', 'POST'],
+    },
 });
 
-// Socket.IO connection event
+app.use(cors());
+
+// Listen for incoming connections from the client
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+    console.log('A user connected: ', socket.id);
 
-  // Handling messages from teacher
-  socket.on('teacherMessage', (data) => {
-    console.log('Teacher sent message:', data);
-    // Broadcast to students
-    socket.broadcast.emit('receiveMessage', { from: 'Teacher', message: data });
-  });
+    // Listen for messages from the teacher
+    socket.on('teacher-message', (data) => {
+        console.log('Received message from Teacher:', data.message);
+        // Broadcast the message to all connected students
+        socket.broadcast.emit('student-message', { message: data.message });
+    });
 
-  // Handling messages from student
-  socket.on('studentMessage', (data) => {
-    console.log('Student sent message:', data);
-    // Broadcast to teachers
-    socket.broadcast.emit('receiveMessage', { from: 'Student', message: data });
-  });
+    // Listen for messages from the student
+    socket.on('student-message', (data) => {
+        console.log('Received message from Student:', data.message);
+        // Broadcast the message to all connected teachers
+        socket.broadcast.emit('receiveMessage', data.message);
+    });
 
-  // Handling disconnections
-  socket.on('disconnect', () => {
-    console.log('A user disconnected:', socket.id);
-  });
+    // Handle user disconnect
+    socket.on('disconnect', () => {
+        console.log('User disconnected: ', socket.id);
+    });
 });
 
-// Define port and start server
-const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Start the server
+const PORT = process.env.PORT || 4000; // You can change the port number if needed
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
