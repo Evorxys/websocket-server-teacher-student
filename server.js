@@ -22,14 +22,14 @@ io.on('connection', (socket) => {
     socket.on('teacher-message', (data) => {
         console.log('Received message from Teacher:', data.message);
         // Broadcast the message to all connected students
-        socket.broadcast.emit('student-message', { message: data.message });
+        socket.broadcast.emit('receiveMessage', { message: data.message });
     });
 
     // Listen for messages from the student
-    socket.on('student-message', (data) => {
-        console.log('Received message from Student:', data.message);
+    socket.on('sendMessage', (data) => {  // Updated to 'sendMessage'
+        console.log('Received message from Student:', data);
         // Broadcast the message to all connected teachers
-        socket.broadcast.emit('receiveMessage', data.message);
+        socket.broadcast.emit('receiveMessage', data);  // Keep 'receiveMessage' for consistency with the student app
     });
 
     // Handle user disconnect
